@@ -31,7 +31,6 @@ http://docs.python.org/lib/module-compileall.html
 import os, sys
 # insert a sys.path.append("whatever") in here if django is not
 # on your sys.path.
-import django.core.handlers.wsgi
 
 def run_with_cgi(application):
 
