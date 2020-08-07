@@ -9,7 +9,7 @@ Code copy/pasted from PEP-0333 and then tweaked to serve django.
 http://www.python.org/dev/peps/pep-0333/#the-server-gateway-side
 
 This script assumes django is on your sys.path, and that your site code is at
-/home/mycode/mysite. Copy this script into your cgi-bin directory (or do
+/your/path/samples/django-cgi-app. Copy this script into your cgi-bin directory (or do
 whatever you need to to make a cgi script executable on your system), and then
 update the paths at the bottom of this file to suit your site.
 
@@ -32,11 +32,23 @@ import os, sys
 # insert a sys.path.append("whatever") in here if django is not
 # on your sys.path.
 
+#from dotenv import load_dotenv
+#load_dotenv(verbose=True)
+#dotenv_path = '/your/path/samples/django-cgi-app/.env'
+#load_dotenv(dotenv_path)
+
+# os.environ['OMP_NUM_THREADS'] = '1'
+# os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
+sys.path.append('/your/path/samples/django-cgi-app/.pip')
+sys.path.append('/your/path/samples/django-cgi-app/')
+
 def run_with_cgi(application):
 
     environ                      = dict(os.environ.items())
-    environ['wsgi.input']        = sys.stdin
-    environ['wsgi.errors']       = sys.stderr
+    environ['PATH_INFO']         = environ.get('PATH_INFO', "/")
+    environ['wsgi.input']        = sys.stdin.buffer
+    environ['wsgi.errors']       = sys.stderr.buffer
     environ['wsgi.version']      = (1,0)
     environ['wsgi.multithread']  = False
     environ['wsgi.multiprocess'] = True
@@ -57,20 +69,20 @@ def run_with_cgi(application):
         elif not headers_sent:
              # Before the first output, send the stored headers
              status, response_headers = headers_sent[:] = headers_set
-             sys.stdout.write('Status: %s\r\n' % status)
+             sys.stdout.buffer.write(('Status: %s\r\n' % status).encode("ascii"))
              for header in response_headers:
-                 sys.stdout.write('%s: %s\r\n' % header)
-             sys.stdout.write('\r\n')
+                 sys.stdout.buffer.write(('%s: %s\r\n' % header).encode("ascii"))
+             sys.stdout.buffer.write(('\r\n').encode("ascii"))
 
-        sys.stdout.write(data)
-        sys.stdout.flush()
+        sys.stdout.buffer.write(data)
+        sys.stdout.buffer.flush()
 
     def start_response(status,response_headers,exc_info=None):
         if exc_info:
             try:
                 if headers_sent:
                     # Re-raise original exception if headers sent
-                    raise exc_info[0], exc_info[1], exc_info[2]
+                    raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
             finally:
                 exc_info = None     # avoid dangling circular ref
         elif headers_set:
@@ -90,8 +102,7 @@ def run_with_cgi(application):
         if hasattr(result,'close'):
             result.close()
 
-# Change this to the directory above your site code.
-sys.path.append("/your/path/to")
-# Change mysite to the name of your site package
+# Change to the name of your settings module
 os.environ['DJANGO_SETTINGS_MODULE'] = 'mysite.settings'
-run_with_cgi(django.core.handlers.wsgi.WSGIHandler())
+from django.core.wsgi import get_wsgi_application
+run_with_cgi(get_wsgi_application())
