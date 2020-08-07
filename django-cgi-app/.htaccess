@@ -9,9 +9,9 @@
 
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_URI} !^/$
-  RewriteRule ^(.*)$ /index.cgi/$1/ [QSA,L]
+  RewriteRule ^(.*) /index.cgi/$1 [QSA,L]
 
-  RewriteRule (__pycache__|.git|.env|README.md|requirements.txt|mysite) - [L,R=404]
+  RewriteRule (__pycache__|.git|.env|.pip|README.md|requirements.txt|mysite) - [L,R=404]
 
   <Files ~ "\.(py|yml|.sqlite3)$">
     deny from all
