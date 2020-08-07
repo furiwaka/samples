@@ -1,0 +1,19 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} !^.*.(jpg|png|css|js|svg|woff)$
+  RewriteCond %{REQUEST_URI} !/$
+  RewriteRule .* %{REQUEST_URI}/ [R,L]
+
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} !^/$
+  RewriteRule ^(.*)$ /index.cgi/$1/ [QSA,L]
+
+  RewriteRule (__pycache__|.git|.env|README.md|requirements.txt|mysite) - [L,R=404]
+
+  <Files ~ "\.(py|yml|.sqlite3)$">
+    deny from all
+  </Files>
+</IfModule>
